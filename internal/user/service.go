@@ -4,10 +4,15 @@ import "log"
 
 type Service interface {
 	Create(firstName, lastName, email, phone string) (*User, error)
-	GetAll() ([]User, error)
+	GetAll(filters Filters) ([]User, error)
 	Get(id string) (*User, error)
 	Delete(id string) error
 	Update(id string, firstName, lastName, email, phone *string) error
+}
+
+type Filters struct {
+	FirstName string
+	LastName  string
 }
 
 type service struct {
@@ -30,8 +35,8 @@ func (s service) Create(firstName, lastName, email, phone string) (*User, error)
 	return user, nil
 }
 
-func (s service) GetAll() ([]User, error) {
-	users, err := s.repository.GetAll()
+func (s service) GetAll(filters Filters) ([]User, error) {
+	users, err := s.repository.GetAll(filters)
 
 	if err != nil {
 		return nil, err
