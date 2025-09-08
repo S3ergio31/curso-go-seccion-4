@@ -26,8 +26,9 @@ func main() {
 
 	router.HandleFunc("/users", userEndpoints.Create).Methods("POST")
 	router.HandleFunc("/users", userEndpoints.GetAll).Methods("GET")
-	router.HandleFunc("/users", userEndpoints.Update).Methods("PATCH")
-	router.HandleFunc("/users", userEndpoints.Delete).Methods("DELETE")
+	router.HandleFunc("/users/{id}", userEndpoints.Get).Methods("GET")
+	router.HandleFunc("/users/{id}", userEndpoints.Update).Methods("PATCH")
+	router.HandleFunc("/users/{id}", userEndpoints.Delete).Methods("DELETE")
 
 	server := &http.Server{
 		Handler:      router,

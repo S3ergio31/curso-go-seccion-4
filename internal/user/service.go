@@ -3,7 +3,11 @@ package user
 import "log"
 
 type Service interface {
-	Create(firstName, lastName, email, phone string) error
+	Create(firstName, lastName, email, phone string) (*User, error)
+	GetAll() ([]User, error)
+	Get(id string) (*User, error)
+	Delete(id string) error
+	Update(id string, firstName, lastName, email, phone *string) error
 }
 
 type service struct {
@@ -11,10 +15,47 @@ type service struct {
 	repository Repository
 }
 
-func (s service) Create(firstName, lastName, email, phone string) error {
-	s.repository.Create(&User{})
+func (s service) Create(firstName, lastName, email, phone string) (*User, error) {
+	user := &User{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Phone:     phone,
+	}
 
-	return nil
+	if err := s.repository.Create(user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s service) GetAll() ([]User, error) {
+	users, err := s.repository.GetAll()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (s service) Get(id string) (*User, error) {
+	user, err := s.repository.Get(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s service) Delete(id string) error {
+	return s.repository.Delete(id)
+}
+
+func (s service) Update(id string, firstName, lastName, email, phone *string) error {
+	return s.repository.Update(id, firstName, lastName, email, phone)
 }
 
 func NewService(repository Repository, logger *log.Logger) Service {
