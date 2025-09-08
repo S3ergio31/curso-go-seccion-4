@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/S3ergio31/curso-go-seccion-4/pkg/meta"
 	"github.com/gorilla/mux"
 )
 
@@ -32,9 +33,10 @@ type UpdateRequest struct {
 }
 
 type Response struct {
-	Status int    `json:"status"`
-	Data   any    `json:"data,omitempty"`
-	Err    string `json:"error,omitempty"`
+	Status int        `json:"status"`
+	Data   any        `json:"data,omitempty"`
+	Err    string     `json:"error,omitempty"`
+	Meta   *meta.Meta `json:"meta"`
 }
 
 func MakeEndpoints(s Service) Endpoints {
@@ -109,6 +111,23 @@ func makeGetAllEndpoint(s Service) Controller {
 			FirstName: query.Get("first_name"),
 			LastName:  query.Get("last_name"),
 		}
+
+		count, err := s.Count(filters)
+
+		if err != nil {
+			w.WriteHeader(500)
+			json.NewEncoder(w).Encode(Response{Status: 500, Err: err.Error()})
+			return
+		}
+
+		meta, err := meta.New(count)
+
+		if err != nil {
+			w.WriteHeader(500)
+			json.NewEncoder(w).Encode(Response{Status: 500, Err: err.Error()})
+			return
+		}
+
 		users, err := s.GetAll(filters)
 
 		if err != nil {
@@ -117,7 +136,11 @@ func makeGetAllEndpoint(s Service) Controller {
 			return
 		}
 
-		json.NewEncoder(w).Encode(Response{Status: 200, Data: users})
+		json.NewEncoder(w).Encode(Response{
+			Status: 200,
+			Data:   users,
+			Meta:   meta,
+		})
 	}
 }
 

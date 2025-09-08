@@ -8,6 +8,7 @@ type Service interface {
 	Get(id string) (*User, error)
 	Delete(id string) error
 	Update(id string, firstName, lastName, email, phone *string) error
+	Count(filters Filters) (int, error)
 }
 
 type Filters struct {
@@ -61,6 +62,10 @@ func (s service) Delete(id string) error {
 
 func (s service) Update(id string, firstName, lastName, email, phone *string) error {
 	return s.repository.Update(id, firstName, lastName, email, phone)
+}
+
+func (s service) Count(filters Filters) (int, error) {
+	return s.repository.Count(filters)
 }
 
 func NewService(repository Repository, logger *log.Logger) Service {
