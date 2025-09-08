@@ -5,13 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
 	Create(user *User) error
-	GetAll(filters Filters) ([]User, error)
+	GetAll(filters Filters, offset, limit int) ([]User, error)
 	Get(id string) (*User, error)
 	Delete(id string) error
 	Update(id string, firstName, lastName, email, phone *string) error
@@ -24,8 +23,6 @@ type repository struct {
 }
 
 func (r repository) Create(user *User) error {
-	user.ID = uuid.NewString()
-
 	if err := r.db.Create(user).Error; err != nil {
 		r.logger.Println(err)
 		return err
@@ -35,12 +32,14 @@ func (r repository) Create(user *User) error {
 	return nil
 }
 
-func (r repository) GetAll(filters Filters) ([]User, error) {
+func (r repository) GetAll(filters Filters, offset, limit int) ([]User, error) {
 	var users []User
 
 	tx := r.db.Model(&users)
 
 	tx = applyFilters(tx, filters)
+
+	tx = tx.Limit(limit).Offset(offset)
 
 	if err := tx.Order("created_at desc").Find(&users).Error; err != nil {
 		return nil, err
