@@ -35,7 +35,7 @@ type Response struct {
 	Status int        `json:"status"`
 	Data   any        `json:"data,omitempty"`
 	Err    string     `json:"error,omitempty"`
-	Meta   *meta.Meta `json:"meta"`
+	Meta   *meta.Meta `json:"meta,omitempty"`
 }
 
 func MakeEndpoints(s Service) Endpoints {
