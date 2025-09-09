@@ -1,0 +1,113 @@
+package course
+
+import (
+	"fmt"
+	"log"
+	"strings"
+	"time"
+
+	"gorm.io/gorm"
+)
+
+type Repository interface {
+	Create(course *Course) error
+	GetAll(filters Filters, offset, limit int) ([]Course, error)
+	Get(id string) (*Course, error)
+	Delete(id string) error
+	Update(id string, name *string, startDate, endDate *time.Time) error
+	Count(filters Filters) (int, error)
+}
+
+type repository struct {
+	logger *log.Logger
+	db     *gorm.DB
+}
+
+func (r repository) Create(course *Course) error {
+	if err := r.db.Create(course).Error; err != nil {
+		r.logger.Println(err)
+		return err
+	}
+
+	r.logger.Println("course created with id: ", course.ID)
+	return nil
+}
+
+func (r repository) GetAll(filters Filters, offset, limit int) ([]Course, error) {
+	var courses []Course
+
+	tx := r.db.Model(&courses)
+
+	tx = applyFilters(tx, filters)
+
+	tx = tx.Limit(limit).Offset(offset)
+
+	if err := tx.Order("created_at desc").Find(&courses).Error; err != nil {
+		return nil, err
+	}
+	return courses, nil
+}
+
+func (r repository) Get(id string) (*Course, error) {
+	course := Course{ID: id}
+	if err := r.db.First(&course).Error; err != nil {
+		return nil, err
+	}
+	return &course, nil
+}
+
+func (r repository) Delete(id string) error {
+	course := Course{ID: id}
+
+	if err := r.db.Delete(&course).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r repository) Update(id string, name *string, startDate, endDate *time.Time) error {
+	values := make(map[string]interface{}, 0)
+
+	if name != nil {
+		values["name"] = *name
+	}
+
+	if startDate != nil {
+		values["start_date"] = *startDate
+	}
+
+	if endDate != nil {
+		values["end_date"] = *endDate
+	}
+
+	if err := r.db.Model(&Course{}).Where("id = ?", id).Updates(values).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r repository) Count(filters Filters) (int, error) {
+	var count int64
+
+	tx := r.db.Model(Course{})
+
+	tx = applyFilters(tx, filters)
+
+	if err := tx.Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
+func NewRepository(logger *log.Logger, db *gorm.DB) Repository {
+	return &repository{logger: logger, db: db}
+}
+
+func applyFilters(tx *gorm.DB, filters Filters) *gorm.DB {
+	if filters.Name != "" {
+		filters.Name = fmt.Sprintf("%%%s%%", strings.ToLower(filters.Name))
+		tx = tx.Where("lower(name) like ?", filters.Name)
+	}
+
+	return tx
+}
