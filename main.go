@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/S3ergio31/curso-go-seccion-4/internal/course"
+	"github.com/S3ergio31/curso-go-seccion-4/internal/enrollment"
 	"github.com/S3ergio31/curso-go-seccion-4/internal/user"
 	"github.com/S3ergio31/curso-go-seccion-4/pkg/bootstrap"
 	"github.com/gorilla/mux"
@@ -43,6 +44,12 @@ func main() {
 	router.HandleFunc("/courses/{id}", courseEndpoints.Get).Methods("GET")
 	router.HandleFunc("/courses/{id}", courseEndpoints.Update).Methods("PATCH")
 	router.HandleFunc("/courses/{id}", courseEndpoints.Delete).Methods("DELETE")
+
+	enrollmentRepository := enrollment.NewRepository(logger, db)
+	enrollmentService := enrollment.NewService(enrollmentRepository, logger, userService, courseService)
+	enrollmentEndpoints := enrollment.MakeEndpoints(enrollmentService)
+
+	router.HandleFunc("/enrollments", enrollmentEndpoints.Create).Methods("POST")
 
 	server := &http.Server{
 		Handler:      router,
