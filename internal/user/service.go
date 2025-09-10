@@ -1,11 +1,15 @@
 package user
 
-import "log"
+import (
+	"log"
+
+	"github.com/S3ergio31/curso-go-seccion-4/internal/domain"
+)
 
 type Service interface {
-	Create(firstName, lastName, email, phone string) (*User, error)
-	GetAll(filters Filters, offset, limit int) ([]User, error)
-	Get(id string) (*User, error)
+	Create(firstName, lastName, email, phone string) (*domain.User, error)
+	GetAll(filters Filters, offset, limit int) ([]domain.User, error)
+	Get(id string) (*domain.User, error)
 	Delete(id string) error
 	Update(id string, firstName, lastName, email, phone *string) error
 	Count(filters Filters) (int, error)
@@ -21,8 +25,8 @@ type service struct {
 	repository Repository
 }
 
-func (s service) Create(firstName, lastName, email, phone string) (*User, error) {
-	user := &User{
+func (s service) Create(firstName, lastName, email, phone string) (*domain.User, error) {
+	user := &domain.User{
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
@@ -36,7 +40,7 @@ func (s service) Create(firstName, lastName, email, phone string) (*User, error)
 	return user, nil
 }
 
-func (s service) GetAll(filters Filters, offset, limit int) ([]User, error) {
+func (s service) GetAll(filters Filters, offset, limit int) ([]domain.User, error) {
 	users, err := s.repository.GetAll(filters, offset, limit)
 
 	if err != nil {
@@ -46,7 +50,7 @@ func (s service) GetAll(filters Filters, offset, limit int) ([]User, error) {
 	return users, nil
 }
 
-func (s service) Get(id string) (*User, error) {
+func (s service) Get(id string) (*domain.User, error) {
 	user, err := s.repository.Get(id)
 
 	if err != nil {

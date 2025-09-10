@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/S3ergio31/curso-go-seccion-4/internal/domain"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
-	Create(course *Course) error
-	GetAll(filters Filters, offset, limit int) ([]Course, error)
-	Get(id string) (*Course, error)
+	Create(course *domain.Course) error
+	GetAll(filters Filters, offset, limit int) ([]domain.Course, error)
+	Get(id string) (*domain.Course, error)
 	Delete(id string) error
 	Update(id string, name *string, startDate, endDate *time.Time) error
 	Count(filters Filters) (int, error)
@@ -23,7 +24,7 @@ type repository struct {
 	db     *gorm.DB
 }
 
-func (r repository) Create(course *Course) error {
+func (r repository) Create(course *domain.Course) error {
 	if err := r.db.Create(course).Error; err != nil {
 		r.logger.Println(err)
 		return err
@@ -33,8 +34,8 @@ func (r repository) Create(course *Course) error {
 	return nil
 }
 
-func (r repository) GetAll(filters Filters, offset, limit int) ([]Course, error) {
-	var courses []Course
+func (r repository) GetAll(filters Filters, offset, limit int) ([]domain.Course, error) {
+	var courses []domain.Course
 
 	tx := r.db.Model(&courses)
 
@@ -48,8 +49,8 @@ func (r repository) GetAll(filters Filters, offset, limit int) ([]Course, error)
 	return courses, nil
 }
 
-func (r repository) Get(id string) (*Course, error) {
-	course := Course{ID: id}
+func (r repository) Get(id string) (*domain.Course, error) {
+	course := domain.Course{ID: id}
 	if err := r.db.First(&course).Error; err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func (r repository) Get(id string) (*Course, error) {
 }
 
 func (r repository) Delete(id string) error {
-	course := Course{ID: id}
+	course := domain.Course{ID: id}
 
 	if err := r.db.Delete(&course).Error; err != nil {
 		return err
@@ -80,7 +81,7 @@ func (r repository) Update(id string, name *string, startDate, endDate *time.Tim
 		values["end_date"] = *endDate
 	}
 
-	if err := r.db.Model(&Course{}).Where("id = ?", id).Updates(values).Error; err != nil {
+	if err := r.db.Model(&domain.Course{}).Where("id = ?", id).Updates(values).Error; err != nil {
 		return err
 	}
 	return nil
@@ -89,7 +90,7 @@ func (r repository) Update(id string, name *string, startDate, endDate *time.Tim
 func (r repository) Count(filters Filters) (int, error) {
 	var count int64
 
-	tx := r.db.Model(Course{})
+	tx := r.db.Model(domain.Course{})
 
 	tx = applyFilters(tx, filters)
 

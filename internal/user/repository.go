@@ -5,13 +5,14 @@ import (
 	"log"
 	"strings"
 
+	"github.com/S3ergio31/curso-go-seccion-4/internal/domain"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
-	Create(user *User) error
-	GetAll(filters Filters, offset, limit int) ([]User, error)
-	Get(id string) (*User, error)
+	Create(user *domain.User) error
+	GetAll(filters Filters, offset, limit int) ([]domain.User, error)
+	Get(id string) (*domain.User, error)
 	Delete(id string) error
 	Update(id string, firstName, lastName, email, phone *string) error
 	Count(filters Filters) (int, error)
@@ -22,7 +23,7 @@ type repository struct {
 	db     *gorm.DB
 }
 
-func (r repository) Create(user *User) error {
+func (r repository) Create(user *domain.User) error {
 	if err := r.db.Create(user).Error; err != nil {
 		r.logger.Println(err)
 		return err
@@ -32,8 +33,8 @@ func (r repository) Create(user *User) error {
 	return nil
 }
 
-func (r repository) GetAll(filters Filters, offset, limit int) ([]User, error) {
-	var users []User
+func (r repository) GetAll(filters Filters, offset, limit int) ([]domain.User, error) {
+	var users []domain.User
 
 	tx := r.db.Model(&users)
 
@@ -47,8 +48,8 @@ func (r repository) GetAll(filters Filters, offset, limit int) ([]User, error) {
 	return users, nil
 }
 
-func (r repository) Get(id string) (*User, error) {
-	user := User{ID: id}
+func (r repository) Get(id string) (*domain.User, error) {
+	user := domain.User{ID: id}
 	if err := r.db.First(&user).Error; err != nil {
 		return nil, err
 	}
@@ -56,7 +57,7 @@ func (r repository) Get(id string) (*User, error) {
 }
 
 func (r repository) Delete(id string) error {
-	user := User{ID: id}
+	user := domain.User{ID: id}
 
 	if err := r.db.Delete(&user).Error; err != nil {
 		return err
@@ -83,7 +84,7 @@ func (r repository) Update(id string, firstName, lastName, email, phone *string)
 		values["phone"] = *phone
 	}
 
-	if err := r.db.Model(&User{}).Where("id = ?", id).Updates(values).Error; err != nil {
+	if err := r.db.Model(&domain.User{}).Where("id = ?", id).Updates(values).Error; err != nil {
 		return err
 	}
 	return nil
@@ -92,7 +93,7 @@ func (r repository) Update(id string, firstName, lastName, email, phone *string)
 func (r repository) Count(filters Filters) (int, error) {
 	var count int64
 
-	tx := r.db.Model(User{})
+	tx := r.db.Model(domain.User{})
 
 	tx = applyFilters(tx, filters)
 

@@ -3,12 +3,14 @@ package course
 import (
 	"log"
 	"time"
+
+	"github.com/S3ergio31/curso-go-seccion-4/internal/domain"
 )
 
 type Service interface {
-	Create(name, startDate, endDate string) (*Course, error)
-	GetAll(filters Filters, offset, limit int) ([]Course, error)
-	Get(id string) (*Course, error)
+	Create(name, startDate, endDate string) (*domain.Course, error)
+	GetAll(filters Filters, offset, limit int) ([]domain.Course, error)
+	Get(id string) (*domain.Course, error)
 	Delete(id string) error
 	Update(id string, name, startDate, endDate *string) error
 	Count(filters Filters) (int, error)
@@ -25,7 +27,7 @@ type Filters struct {
 	EndDate   string
 }
 
-func (s service) Create(name, startDate, endDate string) (*Course, error) {
+func (s service) Create(name, startDate, endDate string) (*domain.Course, error) {
 
 	startDateParsed, err := time.Parse("2006-01-02", startDate)
 
@@ -41,7 +43,7 @@ func (s service) Create(name, startDate, endDate string) (*Course, error) {
 		return nil, err
 	}
 
-	course := &Course{
+	course := &domain.Course{
 		Name:      name,
 		StartDate: startDateParsed,
 		EndDate:   endDateParsed,
@@ -54,7 +56,7 @@ func (s service) Create(name, startDate, endDate string) (*Course, error) {
 	return course, nil
 }
 
-func (s service) GetAll(filters Filters, offset, limit int) ([]Course, error) {
+func (s service) GetAll(filters Filters, offset, limit int) ([]domain.Course, error) {
 	courses, err := s.repository.GetAll(filters, offset, limit)
 
 	if err != nil {
@@ -64,7 +66,7 @@ func (s service) GetAll(filters Filters, offset, limit int) ([]Course, error) {
 	return courses, nil
 }
 
-func (s service) Get(id string) (*Course, error) {
+func (s service) Get(id string) (*domain.Course, error) {
 	course, err := s.repository.Get(id)
 
 	if err != nil {
